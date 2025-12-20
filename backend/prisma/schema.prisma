@@ -1,0 +1,159 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  CLIENT
+  PROVIDER
+  ADMIN
+}
+
+enum MissionStatus {
+  PENDING
+  ACCEPTED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  password      String
+  firstName     String
+  lastName      String
+  phoneNumber   String?
+  role          UserRole @default(CLIENT)
+  profileImage  String?
+  
+  // Location
+  latitude      Float?
+  longitude     Float?
+  address       String?
+  
+  // Provider specific
+  rating        Float?   @default(0)
+  totalJobs     Int      @default(0)
+  isAvailable   Boolean  @default(false)
+  
+  // Stripe
+  stripeCustomerId String?
+  stripeAccountId  String?
+  
+  // FCM Token for notifications
+  fcmToken      String?
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relations
+  clientMissions    Mission[] @relation("ClientMissions")
+  providerMissions  Mission[] @relation("ProviderMissions")
+  sentMessages      Message[] @relation("SentMessages")
+  receivedMessages  Message[] @relation("ReceivedMessages")
+  payments          Payment[]
+  
+  @@map("users")
+}
+
+model Mission {
+  id              String        @id @default(uuid())
+  title           String
+  description     String
+  category        String
+  isUrgent        Boolean       @default(false) // Red button feature
+  
+  // Location
+  latitude        Float
+  longitude       Float
+  address         String
+  
+  // Pricing
+  estimatedPrice  Float
+  finalPrice      Float?
+  commission      Float?
+  
+  status          MissionStatus @default(PENDING)
+  
+  // Client
+  clientId        String
+  client          User          @relation("ClientMissions", fields: [clientId], references: [id])
+  
+  // Provider
+  providerId      String?
+  provider        User?         @relation("ProviderMissions", fields: [providerId], references: [id])
+  
+  // Timestamps
+  createdAt       DateTime      @default(now())
+  acceptedAt      DateTime?
+  startedAt       DateTime?
+  completedAt     DateTime?
+  
+  // Relations
+  messages        Message[]
+  payment         Payment?
+  
+  @@map("missions")
+}
+
+model Message {
+  id          String   @id @default(uuid())
+  content     String
+  
+  missionId   String
+  mission     Mission  @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  
+  senderId    String
+  sender      User     @relation("SentMessages", fields: [senderId], references: [id])
+  
+  receiverId  String
+  receiver    User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  
+  isRead      Boolean  @default(false)
+  
+  createdAt   DateTime @default(now())
+  
+  @@map("messages")
+}
+
+model Payment {
+  id                  String        @id @default(uuid())
+  amount              Float
+  commission          Float
+  providerAmount      Float
+  currency            String        @default("eur")
+  
+  status              PaymentStatus @default(PENDING)
+  
+  // Stripe
+  stripePaymentIntent String?
+  stripeChargeId      String?
+  
+  // Relations
+  missionId           String        @unique
+  mission             Mission       @relation(fields: [missionId], references: [id])
+  
+  userId              String
+  user                User          @relation(fields: [userId], references: [id])
+  
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  
+  @@map("payments")
+}
