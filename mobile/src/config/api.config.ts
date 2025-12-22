@@ -8,14 +8,18 @@ import { Platform } from 'react-native';
  * For Real Device: use your computer's IP address
  */
 
+// Production configuration - set via environment or build config
+const PRODUCTION_API_URL = 'https://your-production-api.com/api';
+const PRODUCTION_SOCKET_URL = 'https://your-production-api.com';
+
 // Determine the appropriate base URL based on platform
 const getBaseUrl = (): string => {
   // Check if running in development mode
   const isDevelopment = __DEV__;
 
   if (!isDevelopment) {
-    // Production URL - replace with your production API URL
-    return 'https://your-production-api.com/api';
+    // Production URL
+    return PRODUCTION_API_URL;
   }
 
   // Development URLs
@@ -31,6 +35,24 @@ const getBaseUrl = (): string => {
   }
 };
 
+// Determine socket URL based on environment
+const getSocketUrl = (): string => {
+  const isDevelopment = __DEV__;
+
+  if (!isDevelopment) {
+    return PRODUCTION_SOCKET_URL;
+  }
+
+  // Development URLs
+  if (Platform.OS === 'android') {
+    return 'http://10.0.2.2:3000';
+  } else if (Platform.OS === 'ios') {
+    return 'http://localhost:3000';
+  } else {
+    return 'http://localhost:3000';
+  }
+};
+
 export const API_CONFIG = {
   BASE_URL: getBaseUrl(),
   TIMEOUT: 10000,
@@ -41,7 +63,7 @@ export const API_CONFIG = {
 
 // Socket configuration
 export const SOCKET_CONFIG = {
-  URL: API_CONFIG.BASE_URL.replace('/api', ''),
+  URL: getSocketUrl(),
   OPTIONS: {
     transports: ['websocket'],
     reconnection: true,

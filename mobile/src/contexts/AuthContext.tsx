@@ -54,8 +54,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(response.user);
     } catch (error: any) {
       console.error('Sign in error:', error);
-      // Provide more detailed error message
-      if (error.message === 'Network Error') {
+      // Provide more detailed error message for network issues
+      if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
         throw new Error('Cannot connect to server. Please check your network connection and ensure the backend server is running.');
       }
       throw error;
@@ -79,8 +79,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(response.user);
     } catch (error: any) {
       console.error('Sign up error:', error);
-      // Provide more detailed error message
-      if (error.message === 'Network Error') {
+      // Provide more detailed error message for network issues
+      if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
         throw new Error('Cannot connect to server. Please check your network connection and ensure the backend server is running.');
       }
       throw error;
