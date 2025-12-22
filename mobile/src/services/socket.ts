@@ -1,7 +1,6 @@
 import { io, Socket } from 'socket.io-client';
 import { Message } from '../types';
-
-const SOCKET_URL = process.env.SOCKET_URL || 'http://localhost:3000';
+import { SOCKET_CONFIG } from '../config/api.config';
 
 class SocketService {
   private socket: Socket | null = null;
@@ -12,12 +11,7 @@ class SocketService {
       return;
     }
 
-    this.socket = io(SOCKET_URL, {
-      transports: ['websocket'],
-      reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-    });
+    this.socket = io(SOCKET_CONFIG.URL, SOCKET_CONFIG.OPTIONS);
 
     this.socket.on('connect', () => {
       console.log('Socket connected');
