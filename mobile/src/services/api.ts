@@ -1,18 +1,15 @@
 import axios, { AxiosInstance } from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const API_URL = process.env.API_URL || 'http://localhost:3000/api';
+import { API_CONFIG } from '../config/api.config';
 
 class ApiService {
   private api: AxiosInstance;
 
   constructor() {
     this.api = axios.create({
-      baseURL: API_URL,
-      timeout: 10000,
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      baseURL: API_CONFIG.BASE_URL,
+      timeout: API_CONFIG.TIMEOUT,
+      headers: API_CONFIG.HEADERS,
     });
 
     // Request interceptor to add token
